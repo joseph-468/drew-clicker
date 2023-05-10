@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy::window::*;
 
 fn main() {
-    App::new().add_plugins(DefaultPlugins).add_startup_system(setup).add_startup_system(spawn_camera).run()
+    App::new().add_plugins(DefaultPlugins).add_startup_system(setup).add_startup_system(spawn_camera).add_system(drew_click).run()
 }
 
 fn setup(mut commands: Commands, 
@@ -32,6 +32,18 @@ fn spawn_camera(
     });
 }
 
+fn drew_click(buttons: Res<Input<MouseButton>>,
+              drew_query: Query<&Drew>,
+              player_query: Query<&Player>,) {
+if buttons.just_pressed(MouseButton::Left) {
+    println!("press");
+    }
+} 
+
 #[derive(Component)]
 struct Drew {}
 
+#[derive(Component)]
+struct Player {
+    money: u128
+}
