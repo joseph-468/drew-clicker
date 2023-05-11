@@ -17,10 +17,11 @@ fn main() {
     }))
         .add_startup_system(setup)
         .add_startup_system(setup_dps)
+        .add_startup_system(spawn_buy_menu)
         .add_startup_system(spawn_camera)
         .add_system(drew_click)
-        .add_system(update_text)
         .add_system(calculate_dps)
+        .add_system(update_text)
         .run()
 }
 
@@ -47,7 +48,7 @@ fn setup(mut commands: Commands,
             "Droodles: 0",
             TextStyle {
                 font: asset_server.load("fonts/font.ttf"),
-                font_size: 100.0,
+                font_size: 64.0,
                 color: Color::WHITE,
             },     
        ) 
@@ -56,7 +57,7 @@ fn setup(mut commands: Commands,
             position_type: PositionType::Absolute,
             position: UiRect {
                 top: Val::Px(5.0),
-                left: Val::Px(500.0),
+                left: Val::Px(300.0),
                 ..default()
             },
             ..default()
@@ -69,7 +70,7 @@ fn setup(mut commands: Commands,
             "DPS: 0",
             TextStyle {
                 font: asset_server.load("fonts/font.ttf"),
-                font_size: 100.0,
+                font_size: 64.0,
                 color: Color::WHITE,
             },
        )
@@ -154,6 +155,62 @@ fn calculate_dps(
     }
 }
 
+fn build_buy_menu(commands: &mut Commands, asset_server: &Res<AssetServer>) -> Entity {
+    let buy_menu_entity = commands.spawn((NodeBundle {
+        style: Style {
+            position: UiRect {
+                top: Val::Px(0.0),
+                left: Val::Px(1024.0),
+                ..default()
+            },
+            size: Size::new(Val::Percent(20.0), Val::Percent(100.0)),
+            ..default()
+        },
+        background_color: Color::RED.into(),
+        ..default()
+    },
+    BuyMenu {},
+    ))
+    .with_children(|parent| {
+        parent.spawn(ButtonBundle {
+            style: Style {
+                size: Size::new(Val::Px(256.0), Val::Px(96.0)),
+            ..default()
+            },
+            background_color: Color::BLUE.into(),
+            ..default()
+        })
+        .with_children(|parent| {
+            parent.spawn((
+                TextBundle::from_section(
+                    "Slave",
+                    TextStyle {
+                        font: asset_server.load("fonts/font.ttf"),
+                        font_size: 40.0,
+                        color: Color::WHITE,
+                    },     
+            ) 
+                .with_text_alignment(TextAlignment::Right)
+                .with_style(Style {
+                    position_type: PositionType::Absolute,
+                    position: UiRect {
+                        top: Val::Px(24.0),
+                        left: Val::Px(0.0),
+                        ..default()
+                    },
+                    ..default()
+                }),
+                SlaveText {}
+            ));
+        });})
+    .id();
+    buy_menu_entity
+}
+
+fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let buy_menu_entity = build_buy_menu(&mut commands, &asset_server);
+}
+
 #[derive(Component)]
 struct Drew {}
 
@@ -169,6 +226,15 @@ struct MoneyText {}
 
 #[derive(Component)]
 struct DPSText {}
+
+#[derive(Component)]
+struct BuyMenu {}
+
+#[derive(Component)]
+struct Slave {}
+
+#[derive(Component)]
+struct SlaveText {}
 
 #[derive(Resource)]
 struct DPSTime {timer: Timer}
