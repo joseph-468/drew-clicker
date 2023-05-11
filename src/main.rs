@@ -39,7 +39,7 @@ fn setup(mut commands: Commands,
         },
         Drew {},
     ));
-    commands.spawn(Player {droodles: 10, dps: 1});
+    commands.spawn(Player {droodles: 0, dps: 1, click_strength: 10});
 
     // Spawn text
     commands.spawn((
@@ -49,14 +49,14 @@ fn setup(mut commands: Commands,
                 font: asset_server.load("fonts/font.ttf"),
                 font_size: 100.0,
                 color: Color::WHITE,
-            },
-       )
-        .with_text_alignment(TextAlignment::Left)
+            },     
+       ) 
+        .with_text_alignment(TextAlignment::Right)
         .with_style(Style {
             position_type: PositionType::Absolute,
             position: UiRect {
                 top: Val::Px(5.0),
-                right: Val::Px(15.0),
+                left: Val::Px(500.0),
                 ..default()
             },
             ..default()
@@ -112,7 +112,7 @@ fn drew_click(
         if let Some(_position) = window.cursor_position() {
             let pos = window.cursor_position().unwrap();
             if pos.x >= 100.0 && pos.x <= 500.0 && pos.y >= 150.0 && pos.y <= 550.0 {
-                player.droodles += 1;
+                player.droodles += player.click_strength;
             }
         }
     }
@@ -160,7 +160,8 @@ struct Drew {}
 #[derive(Component)]
 struct Player {
     droodles: u128,
-    dps: u128, 
+    dps: u128,
+    click_strength: u128,
 }
 
 #[derive(Component)]
