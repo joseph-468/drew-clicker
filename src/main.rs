@@ -19,6 +19,7 @@ fn main() {
         .add_startup_system(setup_dps)
         .add_startup_system(spawn_buy_menu)
         .add_startup_system(spawn_camera)
+        .add_system(calculate_purchases)
         .add_system(drew_click)
         .add_system(calculate_dps)
         .add_system(update_text)
@@ -190,16 +191,7 @@ fn build_buy_menu(commands: &mut Commands, asset_server: &Res<AssetServer>) -> E
                         color: Color::WHITE,
                     },     
             ) 
-                .with_text_alignment(TextAlignment::Right)
-                .with_style(Style {
-                    position_type: PositionType::Absolute,
-                    position: UiRect {
-                        top: Val::Px(24.0),
-                        left: Val::Px(0.0),
-                        ..default()
-                    },
-                    ..default()
-                }),
+                .with_text_alignment(TextAlignment::Center),
                 SlaveText {}
             ));
         });})
@@ -209,6 +201,14 @@ fn build_buy_menu(commands: &mut Commands, asset_server: &Res<AssetServer>) -> E
 
 fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     let buy_menu_entity = build_buy_menu(&mut commands, &asset_server);
+}
+
+fn calculate_purchases(
+    mut button_query: Query<
+        (&Interaction, &mut BackgroundColor),
+        (Changed<Interaction>, With<Slave>),>,
+) {
+
 }
 
 #[derive(Component)]
