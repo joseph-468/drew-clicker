@@ -3,8 +3,8 @@ use bevy::window::*;
 use std::time::Duration;
 
 const WINDOW_TITLE: &str = "Drew Clicker";
-const RESOLUTION_X: f32 = 1200.0;
-const RESOLUTION_Y: f32 = 700.0;
+const RESOLUTION_X: f32 = 1280.0;
+const RESOLUTION_Y: f32 = 720.0;
 
 fn main() {
     App::new().add_plugins(DefaultPlugins.set(WindowPlugin {
