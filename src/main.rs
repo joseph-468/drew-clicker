@@ -205,10 +205,15 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 fn calculate_purchases(
     mut button_query: Query<
-        (&Interaction, &mut BackgroundColor),
-        (Changed<Interaction>, With<Slave>),>,
+        &Interaction,
+        (Changed<Interaction>,),>,
 ) {
-
+    if let Ok(interaction) = button_query.get_single_mut() {
+        match *interaction {
+            Interaction::Clicked => {println!("poop")},
+            _ => {}
+        }
+    }
 }
 
 #[derive(Component)]
