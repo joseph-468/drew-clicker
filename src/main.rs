@@ -178,7 +178,7 @@ fn update_text(
 fn setup_timers(
     mut commands: Commands,
     ) {
-    commands.insert_resource(CoinEffectTime {timer: Timer::new(Duration::from_millis(750), TimerMode::Repeating)});
+    commands.insert_resource(CoinEffectTime {timer: Timer::new(Duration::from_millis(75), TimerMode::Repeating)});
     commands.insert_resource(CoinDespawnTime {timer: Timer::new(Duration::from_secs(60), TimerMode::Repeating)}); // Destroy all effects every minute
     commands.insert_resource(DPSTime {
         timer: Timer::new(Duration::from_millis(1000), TimerMode::Repeating),
