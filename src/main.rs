@@ -26,7 +26,7 @@ fn main() {
         ..default()
     }))
         .add_startup_system(setup)
-        .add_startup_system(setup_dps)
+        .add_startup_system(setup_timers)
         .add_startup_system(spawn_buy_menu)
         .add_startup_system(spawn_camera)
         .add_system(calculate_purchases)
@@ -115,20 +115,49 @@ fn spawn_camera(
 fn drew_click(
     buttons: Res<Input<MouseButton>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
+    effect_query: Query<Entity, With<DroodleCoin>>,
+    asset_server: Res<AssetServer>,
+    time: Res<Time>,
     mut player_query: Query<&mut Player>,
+    mut commands: Commands,
+    mut sprite_query: Query<&mut Sprite, With<DroodleCoin>>, 
+    mut coin_effect_timer: ResMut<CoinEffectTime>, 
+    mut coin_despawn_timer: ResMut<CoinDespawnTime>,
     ) {
     let window = window_query.get_single().unwrap();
-    let mut player = player_query.get_single_mut().unwrap();
-    
+    let mut player = player_query.get_single_mut().unwrap(); 
+    coin_effect_timer.timer.tick(time.delta());
+    coin_despawn_timer.timer.tick(time.delta());
+
     if buttons.just_pressed(MouseButton::Left) {
         if let Some(_position) = window.cursor_position() {
             let pos = window.cursor_position().unwrap();
             if pos.x >= 100.0 && pos.x <= 500.0 && pos.y >= 150.0 && pos.y <= 550.0 {
                 player.droodles += player.click_strength;
+
+                commands.spawn((SpriteBundle {
+                    texture: asset_server.load("sprites/droodle.png"),
+                    transform: Transform::from_xyz(pos.x, pos.y, 0.0),
+
+                    ..default()
+                }, DroodleCoin {} ));
             }
         }
     }
-} 
+
+    // Coin effect
+    for mut sprite in sprite_query.iter_mut() {
+        let a = sprite.color.a();
+        if coin_effect_timer.timer.finished() {
+            sprite.color.set_a(a-0.1);
+        }   
+    }  
+    if coin_despawn_timer.timer.finished() {
+        for effect in effect_query.iter() {
+            commands.entity(effect).despawn();
+        }
+    }   
+}
 
 fn update_text(
         mut droodle_query: Query<&mut Text, (With<MoneyText>, Without<DPSText>)>,
@@ -146,9 +175,11 @@ fn update_text(
 
 }
 
-fn setup_dps(
+fn setup_timers(
     mut commands: Commands,
     ) {
+    commands.insert_resource(CoinEffectTime {timer: Timer::new(Duration::from_millis(750), TimerMode::Repeating)});
+    commands.insert_resource(CoinDespawnTime {timer: Timer::new(Duration::from_secs(60), TimerMode::Repeating)}); // Destroy all effects every minute
     commands.insert_resource(DPSTime {
         timer: Timer::new(Duration::from_millis(1000), TimerMode::Repeating),
     })
@@ -291,6 +322,14 @@ struct DPSText {}
 #[derive(Component)]
 struct BuyMenu {}
 
+#[derive(Component)]
+struct DroodleCoin {}
+
 #[derive(Resource)]
 struct DPSTime {timer: Timer}
 
+#[derive(Resource)]
+struct CoinEffectTime {timer: Timer}
+
+#[derive(Resource)]
+struct CoinDespawnTime {timer: Timer} // Very hacky
