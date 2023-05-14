@@ -56,7 +56,7 @@ fn setup(mut commands: Commands,
     // Spawn text
     commands.spawn((
         TextBundle::from_section(
-            "Droodles: 0",
+            "Droodles: 0.0",
             TextStyle {
                 font: asset_server.load("fonts/font.ttf"),
                 font_size: 64.0,
@@ -78,7 +78,7 @@ fn setup(mut commands: Commands,
 
     commands.spawn((
         TextBundle::from_section(
-            "DPS: 0",
+            "DPS: 0.0",
             TextStyle {
                 font: asset_server.load("fonts/font.ttf"),
                 font_size: 64.0,
@@ -115,11 +115,11 @@ fn spawn_camera(
 fn drew_click(
     buttons: Res<Input<MouseButton>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    mut player_query: Query<&mut Player>
+    mut player_query: Query<&mut Player>,
     ) {
     let window = window_query.get_single().unwrap();
     let mut player = player_query.get_single_mut().unwrap();
-
+    
     if buttons.just_pressed(MouseButton::Left) {
         if let Some(_position) = window.cursor_position() {
             let pos = window.cursor_position().unwrap();
@@ -162,7 +162,6 @@ fn calculate_dps(
     let mut player = player_query.get_single_mut().unwrap();
     dps_timer.timer.tick(time.delta());
     if dps_timer.timer.finished() {
-        println!("{}", player.dps);
         player.droodles += player.dps;
     }
 }
@@ -195,7 +194,7 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             parent.spawn((
                 TextBundle::from_sections([
                     TextSection::new(
-                    "Slave: ",
+                    "Slave $",
                     get_text_style(&asset_server)),
                 TextSection::new(
                     "10",
@@ -213,10 +212,10 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             parent.spawn((
                 TextBundle::from_sections([
                     TextSection::new(
-                    "Balls: ",
+                    "Farmers $",
                     get_text_style(&asset_server)),
                 TextSection::new(
-                    "10",
+                    "100",
                     get_text_style(&asset_server)), 
                 ]), 
             ));
@@ -235,8 +234,8 @@ fn calculate_purchases(
         match *interaction {
             Interaction::Clicked => {
                 match button_type.as_str() {   
-                "Slave: " => {purchase(0, &mut player_query, &mut text)},
-                "Farmers: " => {},
+                "Slave $" => {purchase(0, &mut player_query, &mut text)},
+                "Farmers $" => {purchase(1, &mut player_query, &mut text)},
                 _ => {},
                 }
             },
