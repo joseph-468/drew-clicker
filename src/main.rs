@@ -183,16 +183,22 @@ fn build_buy_menu(commands: &mut Commands, asset_server: &Res<AssetServer>) -> E
         })
         .with_children(|parent| {
             parent.spawn((
-                TextBundle::from_section(
+                TextBundle::from_sections([
+                    TextSection::new(
                     "Slave",
                     TextStyle {
                         font: asset_server.load("fonts/font.ttf"),
                         font_size: 40.0,
                         color: Color::WHITE,
-                    },     
-            ) 
-                .with_text_alignment(TextAlignment::Center),
-                SlaveText {}
+                    }),
+                TextSection::new(
+                    "SPoop",
+                    TextStyle {
+                        font: asset_server.load("fonts/font.ttf"),
+                        font_size: 40.0,
+                        color: Color::WHITE,
+                    }), 
+                    ]), 
             ));
         });})
     .id();
@@ -204,11 +210,12 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 fn calculate_purchases(
-    mut button_query: Query<
-        &Interaction,
-        (Changed<Interaction>,),>,
+    mut button_query: Query<(&Interaction, &Children), Changed<Interaction>>,
+    mut text_query: Query<&mut Text>
 ) {
-    if let Ok(interaction) = button_query.get_single_mut() {
+    for (interaction, children) in &mut button_query {
+        let mut text = text_query.get_mut(children[0]).unwrap();
+        println!("{:?}", text.sections[1].value);
         match *interaction {
             Interaction::Clicked => {println!("poop")},
             _ => {}
