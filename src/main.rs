@@ -166,6 +166,8 @@ fn calculate_dps(
 fn build_buy_menu(commands: &mut Commands, asset_server: &Res<AssetServer>) -> Entity {
     let buy_menu_entity = commands.spawn((NodeBundle {
         style: Style {
+            gap: Size::new(Val::Px(0.0), Val::Px(8.0)),
+            flex_direction: FlexDirection::Column,
             position: UiRect {
                 top: Val::Px(0.0),
                 left: Val::Px(1024.0),
@@ -197,6 +199,24 @@ fn build_buy_menu(commands: &mut Commands, asset_server: &Res<AssetServer>) -> E
                 ]), 
             ));
         });
+        // poop
+        parent.spawn(ButtonBundle {
+            style: BUTTON_STYLE,
+            background_color: Color::BLUE.into(),
+            ..default()
+        })
+        .with_children(|parent| {
+            parent.spawn((
+                TextBundle::from_sections([
+                    TextSection::new(
+                    "Balls: ",
+                    get_text_style(&asset_server)),
+                TextSection::new(
+                    "10",
+                    get_text_style(&asset_server)), 
+                ]), 
+            ));
+        });
     }).id();
 
     buy_menu_entity
@@ -212,7 +232,9 @@ fn calculate_purchases(
 ) {
     for (interaction, children) in &mut button_query {
         let mut text = text_query.get_mut(children[0]).unwrap();
-        println!("{:?}", text.sections[1].value);
+        let button_type =  &text.sections[0].value;
+        let button_cost = &text.sections[1].value;
+        println!("{}", button_type);
         match *interaction {
             Interaction::Clicked => {println!("poop")},
             _ => {}
@@ -247,12 +269,6 @@ struct DPSText {}
 
 #[derive(Component)]
 struct BuyMenu {}
-
-#[derive(Component)]
-struct Slave {}
-
-#[derive(Component)]
-struct SlaveText {}
 
 #[derive(Resource)]
 struct DPSTime {timer: Timer}
