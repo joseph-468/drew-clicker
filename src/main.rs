@@ -7,6 +7,7 @@ const RESOLUTION_X: f32 = 1280.0;
 const RESOLUTION_Y: f32 = 720.0;
 
 const DEFAULT_PRICES: [u128; 2] = [100, 1000];
+const AUTOCLICKER_VALUES: [u128; 2] = [1, 10];
 
 const BUTTON_STYLE: Style = Style {
     justify_content: JustifyContent::Center,
@@ -66,8 +67,8 @@ fn setup(mut commands: Commands,
         .with_style(Style {
             position_type: PositionType::Absolute,
             position: UiRect {
-                top: Val::Px(5.0),
-                left: Val::Px(300.0),
+                top: Val::Px(16.0),
+                left: Val::Px(450.0),
                 ..default()
             },
             ..default()
@@ -88,8 +89,8 @@ fn setup(mut commands: Commands,
         .with_style(Style {
             position_type: PositionType::Absolute,
             position: UiRect {
-                top: Val::Px(5.0),
-                left: Val::Px(15.0),
+                top: Val::Px(16.0),
+                left: Val::Px(32.0),
                 ..default()
             },
             ..default()
@@ -149,7 +150,7 @@ fn setup_dps(
     mut commands: Commands,
     ) {
     commands.insert_resource(DPSTime {
-        timer: Timer::new(Duration::from_millis(100), TimerMode::Repeating),
+        timer: Timer::new(Duration::from_millis(1000), TimerMode::Repeating),
     })
 }
 
@@ -161,6 +162,7 @@ fn calculate_dps(
     let mut player = player_query.get_single_mut().unwrap();
     dps_timer.timer.tick(time.delta());
     if dps_timer.timer.finished() {
+        println!("{}", player.dps);
         player.droodles += player.dps;
     }
 }
@@ -245,11 +247,12 @@ fn calculate_purchases(
 
 fn purchase(index: usize, player_query: &mut Query<&mut Player>, text: &mut Text) {
     let mut player = player_query.get_single_mut().unwrap();
-    let current_price = player.prices[index];
-    if player.droodles > current_price {
+    let current_price = player.prices[index]; 
+    if player.droodles >= current_price {
         player.droodles -= current_price;
         player.auto_clickers[index] += 1;
         player.prices[index] = calculate_price(DEFAULT_PRICES[index], player.auto_clickers[index]);
+        player.dps += AUTOCLICKER_VALUES[index];
         text.sections[1].value = (player.prices[index]/10).to_string();
     }
 }
