@@ -6,6 +6,8 @@ const WINDOW_TITLE: &str = "Drew Clicker";
 const RESOLUTION_X: f32 = 1280.0;
 const RESOLUTION_Y: f32 = 720.0;
 
+const DEFAULT_PRICES: [u128; 2] = [100, 1000];
+
 const BUTTON_STYLE: Style = Style {
     justify_content: JustifyContent::Center,
     align_items: AlignItems::Center,
@@ -48,7 +50,7 @@ fn setup(mut commands: Commands,
         },
         Drew {},
     ));
-    commands.spawn(Player {droodles: 0, dps: 1, click_strength: 10});
+    commands.spawn(Player {droodles: 0, dps: 0, click_strength: 10, auto_clickers: [0, 0], prices: [100, 1000]});
 
     // Spawn text
     commands.spawn((
@@ -163,8 +165,8 @@ fn calculate_dps(
     }
 }
 
-fn build_buy_menu(commands: &mut Commands, asset_server: &Res<AssetServer>) -> Entity {
-    let buy_menu_entity = commands.spawn((NodeBundle {
+fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn((NodeBundle {
         style: Style {
             gap: Size::new(Val::Px(0.0), Val::Px(8.0)),
             flex_direction: FlexDirection::Column,
@@ -217,29 +219,44 @@ fn build_buy_menu(commands: &mut Commands, asset_server: &Res<AssetServer>) -> E
                 ]), 
             ));
         });
-    }).id();
-
-    buy_menu_entity
-}
-
-fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let buy_menu_entity = build_buy_menu(&mut commands, &asset_server);
+    });
 }
 
 fn calculate_purchases(
+    mut player_query: Query<&mut Player>,
     mut button_query: Query<(&Interaction, &Children), Changed<Interaction>>,
     mut text_query: Query<&mut Text>
 ) {
     for (interaction, children) in &mut button_query {
         let mut text = text_query.get_mut(children[0]).unwrap();
         let button_type =  &text.sections[0].value;
-        let button_cost = &text.sections[1].value;
-        println!("{}", button_type);
         match *interaction {
-            Interaction::Clicked => {println!("poop")},
+            Interaction::Clicked => {
+                match button_type.as_str() {   
+                "Slave: " => {purchase(0, &mut player_query, &mut text)},
+                "Farmers: " => {},
+                _ => {},
+                }
+            },
             _ => {}
         }
     }
+}
+
+fn purchase(index: usize, player_query: &mut Query<&mut Player>, text: &mut Text) {
+    let mut player = player_query.get_single_mut().unwrap();
+    let current_price = player.prices[index];
+    if player.droodles > current_price {
+        player.droodles -= current_price;
+        player.auto_clickers[index] += 1;
+        player.prices[index] = calculate_price(DEFAULT_PRICES[index], player.auto_clickers[index]);
+        text.sections[1].value = (player.prices[index]/10).to_string();
+    }
+}
+
+fn calculate_price(base: u128, amount: u128) -> u128 { 
+    let constant: f64 = 1.15;
+    (base as f64 * constant.powf(amount as f64)) as u128 / 10 * 10
 }
 
 fn get_text_style(asset_server: &Res<AssetServer>) -> TextStyle {
@@ -259,6 +276,8 @@ struct Player {
     droodles: u128,
     dps: u128,
     click_strength: u128,
+    auto_clickers: [u128; 2],
+    prices: [u128; 2],
 }
 
 #[derive(Component)]
@@ -272,3 +291,4 @@ struct BuyMenu {}
 
 #[derive(Resource)]
 struct DPSTime {timer: Timer}
+
