@@ -6,6 +6,13 @@ const WINDOW_TITLE: &str = "Drew Clicker";
 const RESOLUTION_X: f32 = 1280.0;
 const RESOLUTION_Y: f32 = 720.0;
 
+const BUTTON_STYLE: Style = Style {
+    justify_content: JustifyContent::Center,
+    align_items: AlignItems::Center,
+    size: Size::new(Val::Px(256.0), Val::Px(96.0)),
+    ..Style::DEFAULT 
+};
+
 fn main() {
     App::new().add_plugins(DefaultPlugins.set(WindowPlugin {
         primary_window: Some(Window {
@@ -174,10 +181,7 @@ fn build_buy_menu(commands: &mut Commands, asset_server: &Res<AssetServer>) -> E
     ))
     .with_children(|parent| {
         parent.spawn(ButtonBundle {
-            style: Style {
-                size: Size::new(Val::Px(256.0), Val::Px(96.0)),
-            ..default()
-            },
+            style: BUTTON_STYLE,
             background_color: Color::BLUE.into(),
             ..default()
         })
@@ -185,23 +189,16 @@ fn build_buy_menu(commands: &mut Commands, asset_server: &Res<AssetServer>) -> E
             parent.spawn((
                 TextBundle::from_sections([
                     TextSection::new(
-                    "Slave",
-                    TextStyle {
-                        font: asset_server.load("fonts/font.ttf"),
-                        font_size: 40.0,
-                        color: Color::WHITE,
-                    }),
+                    "Slave: ",
+                    get_text_style(&asset_server)),
                 TextSection::new(
-                    "SPoop",
-                    TextStyle {
-                        font: asset_server.load("fonts/font.ttf"),
-                        font_size: 40.0,
-                        color: Color::WHITE,
-                    }), 
-                    ]), 
+                    "10",
+                    get_text_style(&asset_server)), 
+                ]), 
             ));
-        });})
-    .id();
+        });
+    }).id();
+
     buy_menu_entity
 }
 
@@ -222,6 +219,15 @@ fn calculate_purchases(
         }
     }
 }
+
+fn get_text_style(asset_server: &Res<AssetServer>) -> TextStyle {
+    TextStyle {
+    font: asset_server.load("fonts/font.ttf"),
+    font_size: 40.0,
+    color: Color::WHITE,
+}}
+
+
 
 #[derive(Component)]
 struct Drew {}
