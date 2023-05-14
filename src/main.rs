@@ -45,7 +45,7 @@ fn setup(mut commands: Commands,
     // Spawn Drew & Player
     commands.spawn((
         SpriteBundle {
-            transform: Transform::from_xyz(300.0, window.height() / 2.0, 0.0),
+            transform: Transform::from_xyz(300.0, window.height() / 2.0, -1.0),
             texture: asset_server.load("sprites/drew-dribble.png"),
             ..default() 
         },
