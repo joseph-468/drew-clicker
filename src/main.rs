@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy::window::*;
 use std::time::Duration;
+use rand::{self, Rng};
 
 const WINDOW_TITLE: &str = "Drew Clicker";
 const RESOLUTION_X: f32 = 1280.0;
@@ -140,10 +141,12 @@ fn drew_click(
             if pos.x >= 100.0 && pos.x <= 500.0 && pos.y >= 150.0 && pos.y <= 550.0 {
                 audio.play(asset_server.load("sounds/click.ogg"));
                 player.droodles += player.click_strength;
-
+                
+                let rand_x: f32 = rand::thread_rng().gen_range(-16.0..16.0);
+                let rand_y: f32 = rand::thread_rng().gen_range(-16.0..16.0);
                 commands.spawn((SpriteBundle {
                     texture: asset_server.load("sprites/droodle.png"),
-                    transform: Transform::from_xyz(pos.x, pos.y, 0.0),
+                    transform: Transform::from_xyz(pos.x + rand_x, pos.y + rand_y, 0.0),
 
                     ..default()
                 }, DroodleCoin {} ));
