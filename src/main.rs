@@ -139,17 +139,39 @@ fn drew_click(
         if let Some(_position) = window.cursor_position() {
             let pos = window.cursor_position().unwrap();
             if pos.x >= 100.0 && pos.x <= 500.0 && pos.y >= 150.0 && pos.y <= 550.0 {
-                audio.play(asset_server.load("sounds/click.ogg"));
-                player.droodles += player.click_strength;
-                
-                let rand_x: f32 = rand::thread_rng().gen_range(-16.0..16.0);
-                let rand_y: f32 = rand::thread_rng().gen_range(-16.0..16.0);
-                commands.spawn((SpriteBundle {
-                    texture: asset_server.load("sprites/droodle.png"),
-                    transform: Transform::from_xyz(pos.x + rand_x, pos.y + rand_y, 0.0),
+                let mut rng = rand::thread_rng();
+                let toasty: u8 = rng.gen_range(0..10);
+                if toasty == 0 {
+                    // 500% droodle boost
+                    audio.play(asset_server.load("sounds/toasty.ogg"));
+                    player.droodles += player.click_strength * 5;
 
-                    ..default()
-                }, DroodleCoin {} ));
+                    for _ in 0..5 {
+                        let rand_x: f32 = rng.gen_range(164.0..434.0);
+                        let rand_y: f32 = rng.gen_range(216.0..494.0);
+                        
+                        commands.spawn((SpriteBundle {
+                            texture: asset_server.load("sprites/droodle.png"),
+                            transform: Transform::from_xyz(rand_x, rand_y, 0.0),
+                            ..default()
+                        }, DroodleCoin {} ));
+                    }
+                }
+
+                else {
+                    // Regular click
+                    audio.play(asset_server.load("sounds/click.ogg"));
+                    player.droodles += player.click_strength;
+                    
+                    let rand_x: f32 = rng.gen_range(-16.0..16.0);
+                    let rand_y: f32 = rng.gen_range(-16.0..16.0);
+                    commands.spawn((SpriteBundle {
+                        texture: asset_server.load("sprites/droodle.png"),
+                        transform: Transform::from_xyz(pos.x + rand_x, pos.y + rand_y, 0.0),
+
+                        ..default()
+                    }, DroodleCoin {} ));
+                }
             }
         }
     }
