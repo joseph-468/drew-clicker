@@ -143,7 +143,7 @@ fn drew_click(
                 let toasty: u8 = rng.gen_range(0..10);
                 if toasty == 0 {
                     // 500% droodle boost
-                    audio.play(asset_server.load("sounds/toasty.ogg"));
+                    audio.play_with_settings(asset_server.load("sounds/toasty.ogg"), PlaybackSettings::ONCE.with_volume(3.0));
                     player.droodles += player.click_strength * 5;
 
                     for _ in 0..5 {
