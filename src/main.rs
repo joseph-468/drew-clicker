@@ -285,7 +285,7 @@ fn calculate_purchases(
             _ => {}
         }
         if purchased {
-            audio.play(asset_server.load("sounds/toasty.ogg"));
+            audio.play_with_settings(asset_server.load("sounds/purchase.ogg"), PlaybackSettings::ONCE.with_volume(2.5).with_speed(1.25));
         }
     }
 }
