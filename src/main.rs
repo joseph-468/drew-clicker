@@ -39,9 +39,14 @@ fn main() {
 fn setup(mut commands: Commands, 
          window_query: Query<&Window, With<PrimaryWindow>>,
          asset_server: Res<AssetServer>,
+         audio: Res<Audio>,
 ) {
     let window = window_query.get_single().unwrap();
-
+    // Play background music
+    audio.play_with_settings(
+        asset_server.load("sounds/funkytown.ogg"),
+        PlaybackSettings::LOOP.with_volume(1.0),
+    );
     // Spawn Drew & Player
     commands.spawn((
         SpriteBundle {
@@ -236,7 +241,7 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
         // poop
         parent.spawn(ButtonBundle {
             style: BUTTON_STYLE,
-            background_color: Color::BLUE.into(),
+            background_color: Color::BLUE.into(), 
             ..default()
         })
         .with_children(|parent| {
