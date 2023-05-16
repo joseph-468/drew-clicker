@@ -123,6 +123,7 @@ fn drew_click(
     effect_query: Query<Entity, With<DroodleCoin>>,
     asset_server: Res<AssetServer>,
     time: Res<Time>,
+    audio: Res<Audio>,
     mut player_query: Query<&mut Player>,
     mut commands: Commands,
     mut sprite_query: Query<&mut Sprite, With<DroodleCoin>>, 
@@ -132,12 +133,12 @@ fn drew_click(
     let window = window_query.get_single().unwrap();
     let mut player = player_query.get_single_mut().unwrap(); 
     coin_effect_timer.timer.tick(time.delta());
-    coin_despawn_timer.timer.tick(time.delta());
-
+    coin_despawn_timer.timer.tick(time.delta());  
     if buttons.just_pressed(MouseButton::Left) {
         if let Some(_position) = window.cursor_position() {
             let pos = window.cursor_position().unwrap();
             if pos.x >= 100.0 && pos.x <= 500.0 && pos.y >= 150.0 && pos.y <= 550.0 {
+                audio.play(asset_server.load("sounds/click.ogg"));
                 player.droodles += player.click_strength;
 
                 commands.spawn((SpriteBundle {
@@ -262,25 +263,31 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn calculate_purchases(
     mut player_query: Query<&mut Player>,
     mut button_query: Query<(&Interaction, &Children), Changed<Interaction>>,
-    mut text_query: Query<&mut Text>
+    mut text_query: Query<&mut Text>,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
 ) {
     for (interaction, children) in &mut button_query {
         let mut text = text_query.get_mut(children[0]).unwrap();
         let button_type =  &text.sections[0].value;
+        let mut purchased = false;
         match *interaction {
             Interaction::Clicked => {
                 match button_type.as_str() {   
-                "Slave $" => {purchase(0, &mut player_query, &mut text)},
-                "Farmers $" => {purchase(1, &mut player_query, &mut text)},
+                "Slave $" => {purchased = purchase(0, &mut player_query, &mut text);},
+                "Farmers $" => {purchased = purchase(1, &mut player_query, &mut text);},
                 _ => {},
                 }
             },
             _ => {}
         }
+        if purchased {
+            audio.play(asset_server.load("sounds/toasty.ogg"));
+        }
     }
 }
 
-fn purchase(index: usize, player_query: &mut Query<&mut Player>, text: &mut Text) {
+fn purchase(index: usize, player_query: &mut Query<&mut Player>, text: &mut Text) -> bool {
     let mut player = player_query.get_single_mut().unwrap();
     let current_price = player.prices[index]; 
     if player.droodles >= current_price {
@@ -289,7 +296,9 @@ fn purchase(index: usize, player_query: &mut Query<&mut Player>, text: &mut Text
         player.prices[index] = calculate_price(DEFAULT_PRICES[index], player.auto_clickers[index]);
         player.dps += AUTOCLICKER_VALUES[index];
         text.sections[1].value = (player.prices[index]/10).to_string();
+        return true;
     }
+    false
 }
 
 fn calculate_price(base: u128, amount: u128) -> u128 { 
