@@ -56,10 +56,10 @@ fn setup(mut commands: Commands,
         },
         Drew {},
     ));
-    commands.spawn(Player {droodles: 892734, dps: 0, click_strength: 10,
-        autoclickers: [0, 0, 0],
-        autoclicker_prices: [100, 1000, 10000],
-        autoclicker_values: [1, 10, 100]
+    commands.spawn(Player {droodles: 0, dps: 50, click_strength: 10,
+        autoclickers: [0, 0, 0, 0],
+        autoclicker_prices: [100, 1000, 10000, 100000],
+        autoclicker_values: [1, 10, 100, 1000]
     });
 
     // Spawn text
@@ -142,13 +142,18 @@ fn drew_click(
             let pos = window.cursor_position().unwrap();
             if pos.x >= 100.0 && pos.x <= 500.0 && pos.y >= 150.0 && pos.y <= 550.0 {
                 let mut rng = rand::thread_rng();
-                let toasty: u8 = rng.gen_range(0..50);
+                let toasty: u8 = rng.gen_range(0..25);
                 if toasty == 0 {
                     // 5x the regular amount of droodles
                     audio.play_with_settings(asset_server.load("sounds/toasty.ogg"), PlaybackSettings::ONCE.with_volume(3.0));
-                    player.droodles += player.click_strength * 5;
 
-                    for _ in 0..5 {
+                    if player.click_strength * player.dps > 1000 {
+                        player.droodles += player.click_strength * player.dps;
+                    } else {
+                        player.droodles += 1000;
+                    }
+
+                    for _ in 0..8 {
                         let rand_x: f32 = rng.gen_range(164.0..434.0);
                         let rand_y: f32 = rng.gen_range(216.0..494.0);
                         
@@ -272,7 +277,7 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             parent.spawn((
                 TextBundle::from_sections([
                     TextSection::new(
-                    "Slave $",
+                    "Pirate $",
                     get_text_style(&asset_server)),
                 TextSection::new(
                     "10",
@@ -293,7 +298,7 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             parent.spawn((
                 TextBundle::from_sections([
                     TextSection::new(
-                    "Farmer $",
+                    "Camel $",
                     get_text_style(&asset_server)),
                 TextSection::new(
                     "100",
@@ -321,6 +326,26 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                 TextSection::new(
                     "\nOwned: 0",
                     get_text_style2(&asset_server)),
+                ]), 
+            ));
+        });
+        parent.spawn(ButtonBundle {
+            style: BUTTON_STYLE,
+            background_color: Color::BLUE.into(), 
+            ..default()
+        })
+        .with_children(|parent| {
+            parent.spawn((
+                TextBundle::from_sections([
+                    TextSection::new(
+                    "Femboy $",
+                    get_text_style(&asset_server)),
+                TextSection::new(
+                    "10000",
+                    get_text_style(&asset_server)), 
+                TextSection::new(
+                    "\nOwned: 0",
+                    get_text_style2(&asset_server)), 
                 ]), 
             ));
         });
@@ -404,9 +429,9 @@ struct Player {
     droodles: u128,
     dps: u128,
     click_strength: u128,
-    autoclickers: [u128; 3],
-    autoclicker_prices: [u128; 3],
-    autoclicker_values: [u128; 3],
+    autoclickers: [u128; 4],
+    autoclicker_prices: [u128; 4],
+    autoclicker_values: [u128; 4],
 }
 
 #[derive(Component)]
