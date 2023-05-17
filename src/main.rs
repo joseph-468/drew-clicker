@@ -56,7 +56,7 @@ fn setup(mut commands: Commands,
         },
         Drew {},
     ));
-    commands.spawn(Player {droodles: 0, dps: 50, click_strength: 10,
+    commands.spawn(Player {droodles: 0, dps: 0, click_strength: 10,
         autoclickers: [0, 0, 0, 0],
         autoclicker_prices: [100, 1000, 10000, 100000],
         autoclicker_values: [1, 10, 100, 1000]
