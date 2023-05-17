@@ -129,18 +129,16 @@ fn drew_click(
     mut commands: Commands,
     mut sprite_query: Query<&mut Sprite, With<DroodleCoin>>, 
     mut coin_effect_timer: ResMut<CoinEffectTime>, 
-    mut coin_despawn_timer: ResMut<CoinDespawnTime>,
     ) {
     let window = window_query.get_single().unwrap();
     let mut player = player_query.get_single_mut().unwrap(); 
     coin_effect_timer.timer.tick(time.delta());
-    coin_despawn_timer.timer.tick(time.delta());  
     if buttons.just_pressed(MouseButton::Left) {
         if let Some(_position) = window.cursor_position() {
             let pos = window.cursor_position().unwrap();
             if pos.x >= 100.0 && pos.x <= 500.0 && pos.y >= 150.0 && pos.y <= 550.0 {
                 let mut rng = rand::thread_rng();
-                let toasty: u8 = rng.gen_range(0..10);
+                let toasty: u8 = rng.gen_range(0..25);
                 if toasty == 0 {
                     // 500% droodle boost
                     audio.play_with_settings(asset_server.load("sounds/toasty.ogg"), PlaybackSettings::ONCE.with_volume(3.0));
@@ -175,19 +173,22 @@ fn drew_click(
             }
         }
     }
+    let mut effects = Vec::new();
+    for effect in effect_query.iter() {
+        effects.push(effect);
+    }
 
     // Coin effect
-    for mut sprite in sprite_query.iter_mut() {
+    for (i, mut sprite) in sprite_query.iter_mut().enumerate() {
         let a = sprite.color.a();
         if coin_effect_timer.timer.finished() {
+            if sprite.color.a() <= 0.0 {
+                commands.entity(effects[i]).despawn();
+            }
             sprite.color.set_a(a-0.1);
         }   
     }  
-    if coin_despawn_timer.timer.finished() {
-        for effect in effect_query.iter() {
-            commands.entity(effect).despawn();
-        }
-    }   
+       
 }
 
 fn update_text(
@@ -210,7 +211,6 @@ fn setup_timers(
     mut commands: Commands,
     ) {
     commands.insert_resource(CoinEffectTime {timer: Timer::new(Duration::from_millis(75), TimerMode::Repeating)});
-    commands.insert_resource(CoinDespawnTime {timer: Timer::new(Duration::from_secs(60), TimerMode::Repeating)}); // Destroy all effects every minute
     commands.insert_resource(DPSTime {
         timer: Timer::new(Duration::from_millis(1000), TimerMode::Repeating),
     })
@@ -370,5 +370,3 @@ struct DPSTime {timer: Timer}
 #[derive(Resource)]
 struct CoinEffectTime {timer: Timer}
 
-#[derive(Resource)]
-struct CoinDespawnTime {timer: Timer} // Very hacky
