@@ -7,8 +7,9 @@ const WINDOW_TITLE: &str = "Drew Clicker";
 const RESOLUTION_X: f32 = 1280.0;
 const RESOLUTION_Y: f32 = 720.0;
 
-const DEFAULT_PRICES: [u128; 2] = [100, 1000];
+const DEFAULT_PRICES: [u128; 2] = [100, 120000];
 const AUTOCLICKER_VALUES: [u128; 2] = [1, 10];
+const EXPONENT_THRESHOLD: u128 = 1000000000;
 
 const BUTTON_STYLE: Style = Style {
     justify_content: JustifyContent::Start,
@@ -58,7 +59,7 @@ fn setup(mut commands: Commands,
         },
         Drew {},
     ));
-    commands.spawn(Player {droodles: 0, dps: 0, click_strength: 10, auto_clickers: [0, 0], prices: [100, 1000]});
+    commands.spawn(Player {droodles: 89273489327, dps: 0, click_strength: 10, auto_clickers: [0, 80], prices: [100, 1000]}); // Prices can easily be removed
 
     // Spawn text
     commands.spawn((
@@ -75,7 +76,7 @@ fn setup(mut commands: Commands,
             position_type: PositionType::Absolute,
             position: UiRect {
                 top: Val::Px(16.0),
-                left: Val::Px(450.0),
+                left: Val::Px(32.0),
                 ..default()
             },
             ..default()
@@ -88,7 +89,7 @@ fn setup(mut commands: Commands,
             "DPS: 0.0",
             TextStyle {
                 font: asset_server.load("fonts/font.ttf"),
-                font_size: 64.0,
+                font_size: 52.0,
                 color: Color::WHITE,
             },
        )
@@ -96,7 +97,7 @@ fn setup(mut commands: Commands,
         .with_style(Style {
             position_type: PositionType::Absolute,
             position: UiRect {
-                top: Val::Px(16.0),
+                top: Val::Px(80.0),
                 left: Val::Px(32.0),
                 ..default()
             },
@@ -134,6 +135,7 @@ fn drew_click(
     let window = window_query.get_single().unwrap();
     let mut player = player_query.get_single_mut().unwrap(); 
     coin_effect_timer.timer.tick(time.delta());
+
     if buttons.just_pressed(MouseButton::Left) {
         if let Some(_position) = window.cursor_position() {
             let pos = window.cursor_position().unwrap();
@@ -182,13 +184,14 @@ fn drew_click(
     for (i, mut sprite) in sprite_query.iter_mut().enumerate() {
         let a = sprite.color.a();
         if coin_effect_timer.timer.finished() {
-            if sprite.color.a() <= 0.0 {
+            if a <= 0.0 {
                 commands.entity(effects[i]).despawn();
             }
-            sprite.color.set_a(a-0.1);
+            else {
+                sprite.color.set_a(a-0.1);
+            }
         }   
-    }  
-       
+    }   
 }
 
 fn update_text(
@@ -196,13 +199,25 @@ fn update_text(
         mut dps_query: Query<&mut Text, (With<DPSText>, Without<MoneyText>)>,
         player_query: Query<&Player>
         ) {
-    let droodles = player_query.get_single().unwrap().droodles as f64 /  10.0;
-    let dps = player_query.get_single().unwrap().dps as f64 / 10.0;
+    let player = player_query.get_single().unwrap();
+    let droodles = player.droodles as f64 / 10.0;
+    let dps = player.dps as f64 / 10.0;
+ 
     for mut text in &mut droodle_query {
-        text.sections[0].value = format!("Droodles: {:?}", droodles);
+        if player.droodles >= EXPONENT_THRESHOLD {
+            text.sections[0].value = format!("Droodles: {:.6e}", droodles);
+        }
+        else {
+            text.sections[0].value = format!("Droodles: {:?}", droodles);
+        }
     }
     for mut text in &mut dps_query {
-        text.sections[0].value = format!("DPS: {:?}", dps);
+        if player.dps >= EXPONENT_THRESHOLD {
+            text.sections[0].value = format!("DPS: {:.6e}", dps);
+        }
+        else {
+            text.sections[0].value = format!("DPS: {:?}", dps);
+        }
     }
 
 }
@@ -320,13 +335,20 @@ fn calculate_purchases(
 
 fn purchase(index: usize, player_query: &mut Query<&mut Player>, text: &mut Text) -> bool {
     let mut player = player_query.get_single_mut().unwrap();
-    let current_price = player.prices[index]; 
+    let mut current_price = player.prices[index];
     if player.droodles >= current_price {
         player.droodles -= current_price;
         player.auto_clickers[index] += 1;
         player.prices[index] = calculate_price(DEFAULT_PRICES[index], player.auto_clickers[index]);
         player.dps += AUTOCLICKER_VALUES[index];
-        text.sections[1].value = (player.prices[index]/10).to_string();
+        current_price = player.prices[index] / 10;
+
+        if current_price >= EXPONENT_THRESHOLD {
+            text.sections[1].value = format!("{:.3e}", current_price);
+        }
+        else { 
+            text.sections[1].value = format!("{:?}", current_price);
+        } 
         text.sections[2].value = format!("\nOwned: {}", player.auto_clickers[index]);
         return true;
     }
@@ -335,7 +357,7 @@ fn purchase(index: usize, player_query: &mut Query<&mut Player>, text: &mut Text
 
 fn calculate_price(base: u128, amount: u128) -> u128 { 
     let constant: f64 = 1.15;
-    (base as f64 * constant.powf(amount as f64)) as u128 / 10 * 10
+    (base as f64 / 10.0 * constant.powf(amount as f64)) as u128 * 10
 }
 
 fn get_text_style(asset_server: &Res<AssetServer>) -> TextStyle {
