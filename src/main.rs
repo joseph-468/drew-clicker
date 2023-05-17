@@ -11,9 +11,10 @@ const DEFAULT_PRICES: [u128; 2] = [100, 1000];
 const AUTOCLICKER_VALUES: [u128; 2] = [1, 10];
 
 const BUTTON_STYLE: Style = Style {
-    justify_content: JustifyContent::Center,
+    justify_content: JustifyContent::Start,
     align_items: AlignItems::Center,
-    size: Size::new(Val::Px(256.0), Val::Px(96.0)),
+    size: Size::new(Val::Px(896.0), Val::Px(96.0)),
+    padding: UiRect {left: Val::Px(16.0), top: Val::Px(0.0), bottom: Val::Px(0.0), right: Val::Px(0.0)},
     ..Style::DEFAULT 
 };
 
@@ -138,9 +139,9 @@ fn drew_click(
             let pos = window.cursor_position().unwrap();
             if pos.x >= 100.0 && pos.x <= 500.0 && pos.y >= 150.0 && pos.y <= 550.0 {
                 let mut rng = rand::thread_rng();
-                let toasty: u8 = rng.gen_range(0..25);
+                let toasty: u8 = rng.gen_range(0..50);
                 if toasty == 0 {
-                    // 500% droodle boost
+                    // 5x the regular amount of droodles
                     audio.play_with_settings(asset_server.load("sounds/toasty.ogg"), PlaybackSettings::ONCE.with_volume(3.0));
                     player.droodles += player.click_strength * 5;
 
@@ -155,7 +156,6 @@ fn drew_click(
                         }, DroodleCoin {} ));
                     }
                 }
-
                 else {
                     // Regular click
                     audio.play(asset_server.load("sounds/click.ogg"));
@@ -235,10 +235,10 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             flex_direction: FlexDirection::Column,
             position: UiRect {
                 top: Val::Px(0.0),
-                left: Val::Px(1024.0),
+                left: Val::Px(896.0),
                 ..default()
             },
-            size: Size::new(Val::Percent(20.0), Val::Percent(100.0)),
+            size: Size::new(Val::Percent(30.0), Val::Percent(100.0)),
             ..default()
         },
         background_color: Color::RED.into(),
@@ -260,7 +260,10 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                     get_text_style(&asset_server)),
                 TextSection::new(
                     "10",
-                    get_text_style(&asset_server)), 
+                    get_text_style(&asset_server)),
+                TextSection::new(
+                    "\nOwned: 0",
+                    get_text_style2(&asset_server)),
                 ]), 
             ));
         });
@@ -279,6 +282,9 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                 TextSection::new(
                     "100",
                     get_text_style(&asset_server)), 
+                TextSection::new(
+                    "\nOwned: 0",
+                    get_text_style2(&asset_server)), 
                 ]), 
             ));
         });
@@ -321,6 +327,7 @@ fn purchase(index: usize, player_query: &mut Query<&mut Player>, text: &mut Text
         player.prices[index] = calculate_price(DEFAULT_PRICES[index], player.auto_clickers[index]);
         player.dps += AUTOCLICKER_VALUES[index];
         text.sections[1].value = (player.prices[index]/10).to_string();
+        text.sections[2].value = format!("\nOwned: {}", player.auto_clickers[index]);
         return true;
     }
     false
@@ -338,7 +345,13 @@ fn get_text_style(asset_server: &Res<AssetServer>) -> TextStyle {
     color: Color::WHITE,
 }}
 
-
+fn get_text_style2(asset_server: &Res<AssetServer>) -> TextStyle {
+    TextStyle {
+    font: asset_server.load("fonts/font.ttf"),
+    font_size: 30.0,
+    color: Color::SILVER,
+    }
+}
 
 #[derive(Component)]
 struct Drew {}
