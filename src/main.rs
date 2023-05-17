@@ -142,7 +142,7 @@ fn drew_click(
             let pos = window.cursor_position().unwrap();
             if pos.x >= 100.0 && pos.x <= 500.0 && pos.y >= 150.0 && pos.y <= 550.0 {
                 let mut rng = rand::thread_rng();
-                let toasty: u8 = rng.gen_range(0..25);
+                let toasty: u8 = rng.gen_range(0..50);
                 if toasty == 0 {
                     // 5x the regular amount of droodles
                     audio.play_with_settings(asset_server.load("sounds/toasty.ogg"), PlaybackSettings::ONCE.with_volume(3.0));
@@ -366,9 +366,10 @@ fn calculate_purchases(
         match *interaction {
             Interaction::Clicked => {
                 match button_type.as_str() {   
-                "Slave $" => {purchased = purchase(0, &mut player_query, &mut text);},
-                "Farmer $" => {purchased = purchase(1, &mut player_query, &mut text);},
+                "Pirate $" => {purchased = purchase(0, &mut player_query, &mut text);},
+                "Camel $" => {purchased = purchase(1, &mut player_query, &mut text);},
                 "Communist $" => {purchased = purchase(2, &mut player_query, &mut text);},
+                "Femboy $" => {purchased = purchase(3, &mut player_query, &mut text);},
                 _ => {},
                 }
             },
