@@ -7,9 +7,7 @@ const WINDOW_TITLE: &str = "Drew Clicker";
 const RESOLUTION_X: f32 = 1280.0;
 const RESOLUTION_Y: f32 = 720.0;
 
-const AUTOCLICKER_VALUES: [u128; 2] = [1, 10];
 const EXPONENT_THRESHOLD: u128 = 1000000000;
-
 const BUTTON_STYLE: Style = Style {
     justify_content: JustifyContent::Start,
     align_items: AlignItems::Center,
@@ -58,7 +56,7 @@ fn setup(mut commands: Commands,
         },
         Drew {},
     ));
-    commands.spawn(Player {droodles: 0, dps: 0, click_strength: 10, autoclickers: [0, 0], autoclicker_prices: [100, 1000]});
+    commands.spawn(Player {droodles: 0, dps: 0, click_strength: 10, autoclickers: [0, 0], autoclicker_prices: [100, 1000], autoclicker_values: [1, 10]});
 
     // Spawn text
     commands.spawn((
@@ -338,7 +336,7 @@ fn purchase(index: usize, player_query: &mut Query<&mut Player>, text: &mut Text
     if player.droodles >= current_price {
         player.droodles -= current_price;
         player.autoclickers[index] += 1;
-        player.dps += AUTOCLICKER_VALUES[index];
+        player.dps += player.autoclicker_values[index];
         current_price = calculate_price(player.autoclicker_prices[index], player.autoclickers[index]) / 10;
 
         if current_price >= EXPONENT_THRESHOLD {
@@ -383,6 +381,7 @@ struct Player {
     click_strength: u128,
     autoclickers: [u128; 2],
     autoclicker_prices: [u128; 2],
+    autoclicker_values: [u128; 2],
 }
 
 #[derive(Component)]
