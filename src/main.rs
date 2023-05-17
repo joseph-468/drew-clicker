@@ -56,7 +56,11 @@ fn setup(mut commands: Commands,
         },
         Drew {},
     ));
-    commands.spawn(Player {droodles: 0, dps: 0, click_strength: 10, autoclickers: [0, 0], autoclicker_prices: [100, 1000], autoclicker_values: [1, 10]});
+    commands.spawn(Player {droodles: 892734, dps: 0, click_strength: 10,
+        autoclickers: [0, 0, 0],
+        autoclicker_prices: [100, 1000, 10000],
+        autoclicker_values: [1, 10, 100]
+    });
 
     // Spawn text
     commands.spawn((
@@ -289,7 +293,7 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             parent.spawn((
                 TextBundle::from_sections([
                     TextSection::new(
-                    "Farmers $",
+                    "Farmer $",
                     get_text_style(&asset_server)),
                 TextSection::new(
                     "100",
@@ -297,6 +301,26 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                 TextSection::new(
                     "\nOwned: 0",
                     get_text_style2(&asset_server)), 
+                ]), 
+            ));
+        });
+        parent.spawn(ButtonBundle {
+            style: BUTTON_STYLE,
+            background_color: Color::BLUE.into(),
+            ..default()
+        })
+        .with_children(|parent| {
+            parent.spawn((
+                TextBundle::from_sections([
+                    TextSection::new(
+                    "Communist $",
+                    get_text_style(&asset_server)),
+                TextSection::new(
+                    "1000",
+                    get_text_style(&asset_server)),
+                TextSection::new(
+                    "\nOwned: 0",
+                    get_text_style2(&asset_server)),
                 ]), 
             ));
         });
@@ -318,7 +342,8 @@ fn calculate_purchases(
             Interaction::Clicked => {
                 match button_type.as_str() {   
                 "Slave $" => {purchased = purchase(0, &mut player_query, &mut text);},
-                "Farmers $" => {purchased = purchase(1, &mut player_query, &mut text);},
+                "Farmer $" => {purchased = purchase(1, &mut player_query, &mut text);},
+                "Communist $" => {purchased = purchase(2, &mut player_query, &mut text);},
                 _ => {},
                 }
             },
@@ -379,9 +404,9 @@ struct Player {
     droodles: u128,
     dps: u128,
     click_strength: u128,
-    autoclickers: [u128; 2],
-    autoclicker_prices: [u128; 2],
-    autoclicker_values: [u128; 2],
+    autoclickers: [u128; 3],
+    autoclicker_prices: [u128; 3],
+    autoclicker_values: [u128; 3],
 }
 
 #[derive(Component)]
