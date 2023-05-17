@@ -7,7 +7,6 @@ const WINDOW_TITLE: &str = "Drew Clicker";
 const RESOLUTION_X: f32 = 1280.0;
 const RESOLUTION_Y: f32 = 720.0;
 
-const DEFAULT_PRICES: [u128; 2] = [100, 120000];
 const AUTOCLICKER_VALUES: [u128; 2] = [1, 10];
 const EXPONENT_THRESHOLD: u128 = 1000000000;
 
@@ -59,7 +58,7 @@ fn setup(mut commands: Commands,
         },
         Drew {},
     ));
-    commands.spawn(Player {droodles: 89273489327, dps: 0, click_strength: 10, auto_clickers: [0, 80], prices: [100, 1000]}); // Prices can easily be removed
+    commands.spawn(Player {droodles: 0, dps: 0, click_strength: 10, autoclickers: [0, 0], autoclicker_prices: [100, 1000]});
 
     // Spawn text
     commands.spawn((
@@ -335,13 +334,12 @@ fn calculate_purchases(
 
 fn purchase(index: usize, player_query: &mut Query<&mut Player>, text: &mut Text) -> bool {
     let mut player = player_query.get_single_mut().unwrap();
-    let mut current_price = player.prices[index];
+    let mut current_price = calculate_price(player.autoclicker_prices[index], player.autoclickers[index]);
     if player.droodles >= current_price {
         player.droodles -= current_price;
-        player.auto_clickers[index] += 1;
-        player.prices[index] = calculate_price(DEFAULT_PRICES[index], player.auto_clickers[index]);
+        player.autoclickers[index] += 1;
         player.dps += AUTOCLICKER_VALUES[index];
-        current_price = player.prices[index] / 10;
+        current_price = calculate_price(player.autoclicker_prices[index], player.autoclickers[index]) / 10;
 
         if current_price >= EXPONENT_THRESHOLD {
             text.sections[1].value = format!("{:.3e}", current_price);
@@ -349,7 +347,7 @@ fn purchase(index: usize, player_query: &mut Query<&mut Player>, text: &mut Text
         else { 
             text.sections[1].value = format!("{:?}", current_price);
         } 
-        text.sections[2].value = format!("\nOwned: {}", player.auto_clickers[index]);
+        text.sections[2].value = format!("\nOwned: {}", player.autoclickers[index]);
         return true;
     }
     false
@@ -383,8 +381,8 @@ struct Player {
     droodles: u128,
     dps: u128,
     click_strength: u128,
-    auto_clickers: [u128; 2],
-    prices: [u128; 2],
+    autoclickers: [u128; 2],
+    autoclicker_prices: [u128; 2],
 }
 
 #[derive(Component)]
