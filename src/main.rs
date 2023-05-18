@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 use bevy::window::*;
+use bevy_pkv::PkvStore;
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use rand::{self, Rng};
 
@@ -24,23 +26,25 @@ fn main() {
             ..default()
         }),
         ..default()
-    }))
-        .add_startup_system(setup)
+    })).insert_resource(PkvStore::new("joseph468", "Drew Clicker"))
+        .add_startup_system(setup) 
         .add_startup_system(setup_timers)
         .add_startup_system(spawn_buy_menu)
         .add_startup_system(spawn_camera)
         .add_system(calculate_purchases)
         .add_system(drew_click)
         .add_system(calculate_dps)
+        .add_system(save)
         .add_system(update_text)
         .run()
 }
 
-fn setup(mut commands: Commands, 
+fn setup(mut commands: Commands,  
          window_query: Query<&Window, With<PrimaryWindow>>,
          asset_server: Res<AssetServer>,
          audio: Res<Audio>,
-) {
+         mut pkv: ResMut<PkvStore>,
+) { 
     let window = window_query.get_single().unwrap();
     // Play background music
     audio.play_with_settings(
@@ -55,12 +59,18 @@ fn setup(mut commands: Commands,
             ..default() 
         },
         Drew {},
-    ));
-    commands.spawn(Player {droodles: 0, dps: 0, click_strength: 10,
-        autoclickers: [0, 0, 0, 0],
-        autoclicker_prices: [100, 1000, 10000, 100000],
-        autoclicker_values: [1, 10, 100, 1000]
-    });
+    )); 
+
+    if let Ok(player) = pkv.get::<Player>("Player") {
+        commands.spawn(player);
+    } else {
+        let player = Player {droodles: 0, dps: 0, click_strength: 10,
+            autoclickers: [0, 0, 0, 0],
+            autoclicker_prices: [100, 1000, 10000, 100000],
+            autoclicker_values: [1, 10, 100, 1000]};
+        pkv.set("Player", &player).expect("Couldn't save player");
+        commands.spawn(player); 
+    }
 
     // Spawn text
     commands.spawn((
@@ -109,6 +119,14 @@ fn setup(mut commands: Commands,
 
 }
 
+fn save(mut pkv: ResMut<PkvStore>, player_query: Query<&Player>, time: Res<Time>, mut save_time: ResMut<SaveTime>) {
+    save_time.timer.tick(time.delta());
+    let player = player_query.get_single().unwrap();
+    if save_time.timer.finished() {
+        pkv.set("Player", &player).expect("Couldn't save player");
+    }
+}
+
 fn spawn_camera(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>
@@ -133,14 +151,14 @@ fn drew_click(
     mut sprite_query: Query<&mut Sprite, With<DroodleCoin>>, 
     mut coin_effect_timer: ResMut<CoinEffectTime>, 
     ) {
-    let window = window_query.get_single().unwrap();
-    let mut player = player_query.get_single_mut().unwrap(); 
     coin_effect_timer.timer.tick(time.delta());
+    let window = window_query.get_single().unwrap();
+    let mut player = player_query.get_single_mut().unwrap();  
 
     if buttons.just_pressed(MouseButton::Left) {
         if let Some(_position) = window.cursor_position() {
             let pos = window.cursor_position().unwrap();
-            if pos.x >= 100.0 && pos.x <= 500.0 && pos.y >= 150.0 && pos.y <= 550.0 {
+            if pos.x >= 100.0 && pos.x <= 500.0 && pos.y >= 150.0 && pos.y <= 550.0 { 
                 let mut rng = rand::thread_rng();
                 let toasty: u8 = rng.gen_range(0..50);
                 if toasty == 0 {
@@ -232,9 +250,8 @@ fn setup_timers(
     mut commands: Commands,
     ) {
     commands.insert_resource(CoinEffectTime {timer: Timer::new(Duration::from_millis(75), TimerMode::Repeating)});
-    commands.insert_resource(DPSTime {
-        timer: Timer::new(Duration::from_millis(1000), TimerMode::Repeating),
-    })
+    commands.insert_resource(SaveTime {timer: Timer::new(Duration::from_secs(1), TimerMode::Repeating)});
+    commands.insert_resource(DPSTime {timer: Timer::new(Duration::from_millis(1000), TimerMode::Repeating)})
 }
 
 fn calculate_dps(
@@ -242,8 +259,9 @@ fn calculate_dps(
     mut dps_timer: ResMut<DPSTime>,
     time: Res<Time>,
     ) {
-    let mut player = player_query.get_single_mut().unwrap();
     dps_timer.timer.tick(time.delta());
+    let mut player = player_query.get_single_mut().unwrap();
+    
     if dps_timer.timer.finished() {
         player.droodles += player.dps;
     }
@@ -425,7 +443,7 @@ fn get_text_style2(asset_server: &Res<AssetServer>) -> TextStyle {
 #[derive(Component)]
 struct Drew {}
 
-#[derive(Component)]
+#[derive(Component, Serialize, Deserialize, Debug)]
 struct Player {
     droodles: u128,
     dps: u128,
@@ -453,3 +471,5 @@ struct DPSTime {timer: Timer}
 #[derive(Resource)]
 struct CoinEffectTime {timer: Timer}
 
+#[derive(Resource)]
+struct SaveTime {timer: Timer}
