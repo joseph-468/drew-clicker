@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Component, Serialize, Deserialize)]
 pub struct Player {
@@ -16,9 +16,6 @@ pub struct MoneyText {}
 
 #[derive(Component)]
 pub struct DPSText {}
-
-#[derive(Component)]
-pub struct BuyMenu {}
 
 #[derive(Component)]
 pub struct DroodleCoin {}
