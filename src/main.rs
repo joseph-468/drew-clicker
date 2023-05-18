@@ -27,7 +27,7 @@ fn main() {
         }),
         ..default()
     })).insert_resource(PkvStore::new("joseph468", "Drew Clicker"))
-        .add_startup_system(setup) 
+        .add_startup_system(setup.in_base_set(StartupSet::PreStartup))
         .add_startup_system(setup_timers)
         .add_startup_system(spawn_buy_menu)
         .add_startup_system(spawn_camera)
@@ -251,7 +251,7 @@ fn setup_timers(
     ) {
     commands.insert_resource(CoinEffectTime {timer: Timer::new(Duration::from_millis(75), TimerMode::Repeating)});
     commands.insert_resource(SaveTime {timer: Timer::new(Duration::from_secs(1), TimerMode::Repeating)});
-    commands.insert_resource(DPSTime {timer: Timer::new(Duration::from_millis(1000), TimerMode::Repeating)})
+    commands.insert_resource(DPSTime {timer: Timer::new(Duration::from_secs(1), TimerMode::Repeating)})
 }
 
 fn calculate_dps(
@@ -267,7 +267,8 @@ fn calculate_dps(
     }
 }
 
-fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>, player_query: Query<&Player>) {
+    let player = player_query.get_single().unwrap();
     commands.spawn((NodeBundle {
         style: Style {
             gap: Size::new(Val::Px(0.0), Val::Px(8.0)),
@@ -298,10 +299,10 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                     "Pirate $",
                     get_text_style(&asset_server)),
                 TextSection::new(
-                    "10",
+                    format!("{}", calculate_price(player.autoclicker_prices[0], player.autoclickers[0]) / 10),
                     get_text_style(&asset_server)),
                 TextSection::new(
-                    "\nOwned: 0",
+                    format!("\nOwned: {}", player.autoclickers[0]),
                     get_text_style2(&asset_server)),
                 ]), 
             ));
@@ -319,10 +320,10 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                     "Camel $",
                     get_text_style(&asset_server)),
                 TextSection::new(
-                    "100",
+                    format!("{}", calculate_price(player.autoclicker_prices[1], player.autoclickers[1]) / 10),
                     get_text_style(&asset_server)), 
                 TextSection::new(
-                    "\nOwned: 0",
+                    format!("\nOwned: {}", player.autoclickers[1]),
                     get_text_style2(&asset_server)), 
                 ]), 
             ));
@@ -339,10 +340,10 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                     "Communist $",
                     get_text_style(&asset_server)),
                 TextSection::new(
-                    "1000",
+                    format!("{}", calculate_price(player.autoclicker_prices[2], player.autoclickers[2]) / 10),
                     get_text_style(&asset_server)),
                 TextSection::new(
-                    "\nOwned: 0",
+                    format!("\nOwned: {}", player.autoclickers[2]),
                     get_text_style2(&asset_server)),
                 ]), 
             ));
@@ -359,10 +360,10 @@ fn spawn_buy_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                     "Femboy $",
                     get_text_style(&asset_server)),
                 TextSection::new(
-                    "10000",
+                    format!("{}", calculate_price(player.autoclicker_prices[3], player.autoclickers[3]) / 10),
                     get_text_style(&asset_server)), 
                 TextSection::new(
-                    "\nOwned: 0",
+                    format!("\nOwned: {}", player.autoclickers[3]),
                     get_text_style2(&asset_server)), 
                 ]), 
             ));
